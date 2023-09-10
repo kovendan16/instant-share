@@ -6,7 +6,7 @@ const File = require("./models/File");
 const path = require("path");
 const { encryptId, decryptId } = require("./utili/enc"); // Add the path to your encryption.js file
 
-const port = process.env.PORT || 4000;
+const port =  4000;
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({ extended: true }));

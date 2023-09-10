@@ -1,0 +1,50 @@
+app.post("/upload", upload.single("file"), async (req, res) => {
+  const fileData = new File({
+    path: req.file.path,
+    originalName: req.file.originalname,
+  });
+  if (req.body.password != null && req.body.password !== "") {
+    fileData.password = await bcrypt.hash(req.body.password, 10);
+  }
+
+  const file = await fileData.save();
+
+  const message = "File uploaded successfully!";
+  res.render("index", { fileLink: `${req.headers.origin}/file/${file.id}`, message: message });
+});
+// Assuming that `File` is a Mongoose model representing a file
+const File = require("./models/File");
+
+// Assuming that `bcrypt` is a library for password hashing and comparison
+const bcrypt = require("bcrypt");
+
+// Define a route to handle file downloads using the `get` method
+app.get("/file/:id", async (req, res) => {
+  try {
+    // Retrieve the file information from the database
+    const file = await File.findById(req.params.id);
+
+    // Check if the file requires a password and, if so, check the provided password
+    if (file.password) {
+      const password = req.query.password;
+      if (!password) {
+        // If no password is provided, render a password prompt
+        return res.render("password");
+      } else if (!(await bcrypt.compare(password, file.password))) {
+        // If the provided password is incorrect, render a password prompt with an error message
+        return res.render("password", { error: true });
+      }
+    }
+
+    // Increment the download count for the file
+    file.downloadCount++;
+    await file.save();
+
+    // Send the file for download
+    res.download(file.path, file.originalName);
+  } catch (error) {
+    // Handle any errors that occur
+    console.error(error);
+    res.status(500).send("Internal server error");
+  }
+});

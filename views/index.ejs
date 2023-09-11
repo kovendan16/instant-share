@@ -83,12 +83,23 @@
       .email-icon:hover {
         color: #0056b3; /* Change the color on hover */
       }
+
+      /* CSS to style the alert-success box */
+      .alert-success {
+        background-color: #d4edda; /* Background color for success alerts */
+        color: #155724; /* Text color for success alerts */
+        border: 1px solid #c3e6cb; /* Border color for success alerts */
+        padding: 10px; /* Adjust this value to control the padding */
+        margin: 10px; /* Adjust this value to control the margin */
+        word-wrap: break-word; /* Wrap long words to the next line */
+        white-space: normal; /* Allow text to wrap within the container */
+      }
     </style>
   </head>
   <body>
     <% if (locals.fileLink != null) { %>
     <div class="container mt-3">
-      <div class="alert alert-success">
+      <div class=" alert-success">
         Your file is uploaded. You can download it by clicking or copy link to
         share:
         <span>

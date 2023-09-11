@@ -121,8 +121,7 @@ app.post("/upload", async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 });
-
-app.route("/file/:id").get((req, res) => {
+app.route("/file/:id").post(async (req, res) => {
   // ... (existing code)
 
   // Retrieve the custom expiration unit from the query parameter

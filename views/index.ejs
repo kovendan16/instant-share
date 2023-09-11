@@ -74,7 +74,8 @@
       /* Style for the email icon */
       .email-icon {
         font-size: 20px; /* Adjust the font size as needed */
-        background-color: #52565e; /* Change the icon color */
+
+        color: #222;
         margin-left: 10px; /* Add margin to separate it from the copy icon */
         cursor: pointer;
       }
@@ -83,7 +84,6 @@
       .email-icon:hover {
         color: #0056b3; /* Change the color on hover */
       }
-
       /* CSS to style the alert-success box */
       .alert-success {
         background-color: #d4edda; /* Background color for success alerts */
@@ -99,7 +99,7 @@
   <body>
     <% if (locals.fileLink != null) { %>
     <div class="container mt-3">
-      <div class=" alert-success">
+      <div class="alert-success">
         Your file is uploaded. You can download it by clicking or copy link to
         share:
         <span>
@@ -118,6 +118,7 @@
         </span>
       </div>
     </div>
+
     <% } %>
     <div class="container mt-3">
       <form
@@ -129,7 +130,12 @@
         <label for="file">File:</label>
         <input type="file" id="file" name="file" required />
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" />
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="optional"
+        />
         <label for="expiration">Expiration (e.g., hours/days/minutes):</label>
         <select
           class="custom-select"
@@ -148,7 +154,7 @@
           name="expiration"
           placeholder="e.g., 1"
         />
-        <button type="submit" class="btn btn-primary">Share</button>
+        <button type="submit" class="btn btn-primary">Create</button>
         <div style="margin-top: 10px"></div>
         <button type="button" class="btn btn-danger" onclick="resetForm()">
           Reset
@@ -167,7 +173,7 @@
       async function copyToClipboard(text) {
         try {
           // Copy the link to the clipboard
-          await navigator.clipboard.writeText(text);
+          await navigator.clipboard.writeText(`${text}  click to download  `);
           alert(" copied to clipboard");
 
           // Navigate to the link

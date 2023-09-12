@@ -6,7 +6,7 @@ const File = require("./models/File");
 const path = require("path");
 const { encryptId, decryptId } = require("./utili/enc"); // Add the path to your encryption.js file
 
-const port =  4000;
+const port = 4000;
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -121,6 +121,54 @@ app.post("/upload", async (req, res, next) => {
     res.status(500).send("Internal Server Error");
   }
 });
+
+app.route("/file/:id").get((req, res) => {
+  // ... (existing code)
+
+  // Retrieve the custom expiration unit from the query parameter
+  const customExpirationUnit = req.query.expirationUnit;
+
+  // ... (existing code)
+
+  async function handleDownload(req, res) {
+    const decryptedId = decryptId(req.params.id);
+    const file = await File.findById(decryptedId);
+
+    const expirationTime = parseInt(req.query.expires, 10);
+
+    if (!expirationTime || Date.now() > expirationTime) {
+      return res.status(403).send({ message: "The link has expired." });
+    }
+
+    if (file.password != null) {
+      if (req.body.password == null) {
+        res.render("password");
+        return;
+      }
+
+      if (!(await bcrypt.compare(req.body.password, file.password))) {
+        res.render("password", { error: true });
+        return;
+      }
+    }
+
+    file.downloadCount++;
+
+    console.log(file.downloadCount);
+
+    res.download(file.path, file.originalName, (err) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .send({ message: "An error occurred while downloading the file." });
+      }
+    });
+  }
+
+  // Call the handleDownload function with the customExpirationUnit
+  handleDownload(req, res);
+});
 app.route("/file/:id").post(async (req, res) => {
   // ... (existing code)
 
@@ -169,6 +217,6 @@ app.route("/file/:id").post(async (req, res) => {
   handleDownload(req, res);
 });
 
-app.listen(process.env.PORT||port, (req, res) => {
+app.listen(process.env.PORT || port, (req, res) => {
   console.log(`server started on port ${port}`);
 });

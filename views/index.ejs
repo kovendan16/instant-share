@@ -127,7 +127,7 @@
         enctype="multipart/form-data"
         id="uploadForm"
       >
-        <label for="file">File:</label>
+        <label for="file">File: multiple files accepted file limit 50</label>
         <input type="file" id="file" name="file" required />
         <label for="password">Password:</label>
         <input
@@ -154,7 +154,7 @@
           name="expiration"
           placeholder="e.g., 1"
         />
-        <button type="submit" class="btn btn-primary">Create</button>
+        <button type="submit" class="btn btn-primary">Share</button>
         <div style="margin-top: 10px"></div>
         <button type="button" class="btn btn-danger" onclick="resetForm()">
           Reset
@@ -184,6 +184,7 @@
       }
       function resetForm() {
         document.getElementById("uploadForm").reset();
+
         /*
         const linkElement = document.querySelector(".alert.alert-success a");
         linkElement.style.display = "none";

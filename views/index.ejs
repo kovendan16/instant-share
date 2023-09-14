@@ -97,29 +97,39 @@
     </style>
   </head>
   <body>
-    <% if (locals.fileLink != null) { %>
+    <% if (locals.fileLinks && locals.fileLinks.length > 0) { %>
     <div class="container mt-3">
       <div class="alert-success">
-        Your file is uploaded. You can download it by clicking or copy link to
-        share:
+        <% if (locals.fileLinks.length > 1) { %> Your files are uploaded. You
+        can download all of them using the following button:
+
+        <button
+          class="btn btn-primary"
+          id="send_all"
+          onclick="sendLinksViaEmail()"
+        >
+          Send all
+        </button>
+
+        <% } else { %> Your file is uploaded. You can download it by clicking or
+        copy link to share: <% } %> <% for (const fileLink of locals.fileLinks)
+        { %>
         <span>
-          <a href="<%= locals.fileLink %>"><%= locals.fileLink %></a>
-          <span
-            class="copy-icon"
-            onclick="copyToClipboard('<%= locals.fileLink %>')"
-          >
+          <a href="<%= fileLink %>"><%= fileLink %></a>
+          <span class="copy-icon" onclick="copyToClipboard('<%= fileLink %>')">
             <i class="fas fa-copy"></i>
             <!-- FontAwesome copy icon -->
           </span>
           <i
             class="fas fa-envelope email-icon"
-            onclick="shareViaEmail('<%= locals.fileLink %>')"
+            onclick="shareViaEmail('<%= fileLink %>')"
           ></i>
         </span>
+        <% } %>
       </div>
     </div>
-
     <% } %>
+
     <div class="container mt-3">
       <form
         action="/upload"
@@ -127,8 +137,10 @@
         enctype="multipart/form-data"
         id="uploadForm"
       >
-        <label for="file">File: multiple files accepted file limit 50</label>
-        <input type="file" id="file" name="file" required />
+        <label for="file"
+          >File: multiple files can be acceptable file limit 50</label
+        >
+        <input type="file" id="file" name="file" required multiple />
         <label for="password">Password:</label>
         <input
           type="password"
@@ -153,14 +165,13 @@
           id="expiration"
           name="expiration"
           placeholder="e.g., 1"
+          required
         />
         <button type="submit" class="btn btn-primary">Share</button>
         <div style="margin-top: 10px"></div>
         <button type="button" class="btn btn-danger" onclick="resetForm()">
           Reset
         </button>
-
-        <!-- Use type="button" to prevent form submission -->
       </form>
     </div>
 
@@ -174,35 +185,43 @@
         try {
           // Copy the link to the clipboard
           await navigator.clipboard.writeText(`${text}  click to download  `);
-          alert(" copied to clipboard");
-
-          // Navigate to the link
-          window.location.href = link;
+          alert("Copied to clipboard");
         } catch (error) {
           console.error("Failed to copy link to clipboard: ", error);
         }
       }
+
       function resetForm() {
         document.getElementById("uploadForm").reset();
-
-        /*
-        const linkElement = document.querySelector(".alert.alert-success a");
-        linkElement.style.display = "none";
-     
-      */
         // Redirect to the homepage
         window.location.href = "/";
       }
+
       function shareViaEmail(link) {
         const subject = "Check out this link";
         const emailBody = `I wanted to share this link with you:\n\n${link}`;
         const mailtoLink = `mailto:?subject=${encodeURIComponent(
           subject
         )}&body=${encodeURIComponent(emailBody)}`;
-
         // Open the user's default email client with the mailto link
         window.location.href = mailtoLink;
       }
+      // ... (your other functions)
+      function sendLinksViaEmail() {
+        const subject = "Check out these links";
+        let emailBody = "I wanted to share these links with you:\n\n";
+
+        const fileLinks = document.querySelectorAll("a");
+        for (const fileLink of fileLinks) {
+          emailBody += `links:${fileLink.href}\n`;
+        }
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(
+          subject
+        )}&body=${encodeURIComponent(emailBody)}`;
+        window.location.href = mailtoLink;
+      }
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
   </body>
 </html>

@@ -167,12 +167,20 @@
           placeholder="e.g., 1"
           required
         />
-        <button type="submit" class="btn btn-primary">Share</button>
+        <button type="submit" class="btn btn-primary" onclick="uploadFile()">
+          Share
+        </button>
         <div style="margin-top: 10px"></div>
         <button type="button" class="btn btn-danger" onclick="resetForm()">
           Reset
         </button>
       </form>
+    </div>
+    <!-- Add a loading spinner element -->
+    <div id="loadingSpinner" class="d-none text-center mt-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
     </div>
 
     <!-- Include Bootstrap JS and Popper.js (if needed) -->
@@ -221,7 +229,36 @@
         )}&body=${encodeURIComponent(emailBody)}`;
         window.location.href = mailtoLink;
       }
+
+      // Function to show the loading spinner
+      function showLoadingSpinner() {
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        loadingSpinner.classList.remove("d-none"); // Remove 'd-none' class to display the spinner
+      }
+
+      // Function to hide the loading spinner
+      function hideLoadingSpinner() {
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        loadingSpinner.classList.add("d-none"); // Add 'd-none' class to hide the spinner
+      }
+
+      // Update your file upload function to show the spinner
+      async function uploadFile() {
+        showLoadingSpinner(); // Show the loading spinner
+
+        try {
+          // Perform the file upload logic here
+
+          // After successful upload, hide the spinner
+          hideLoadingSpinner();
+        } catch (error) {
+          console.error("Error:", error);
+          hideLoadingSpinner(); // Hide the spinner in case of an error
+          // Handle the error and show an error message to the user
+        }
+
+        console.log("Upload button clicked");
+      }
     </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
   </body>
 </html>

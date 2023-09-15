@@ -227,37 +227,56 @@
         const mailtoLink = `mailto:?subject=${encodeURIComponent(
           subject
         )}&body=${encodeURIComponent(emailBody)}`;
+
         window.location.href = mailtoLink;
       }
 
-      // Function to show the loading spinner
-      function showLoadingSpinner() {
-        const loadingSpinner = document.getElementById("loadingSpinner");
-        loadingSpinner.classList.remove("d-none"); // Remove 'd-none' class to display the spinner
-      }
-
-      // Function to hide the loading spinner
-      function hideLoadingSpinner() {
-        const loadingSpinner = document.getElementById("loadingSpinner");
-        loadingSpinner.classList.add("d-none"); // Add 'd-none' class to hide the spinner
-      }
-
-      // Update your file upload function to show the spinner
       async function uploadFile() {
+        const fileInput = document.getElementById("file");
+        const files = fileInput.files;
+
+        if (files.length === 0) {
+          return;
+        }
+
         showLoadingSpinner(); // Show the loading spinner
 
         try {
-          // Perform the file upload logic here
+          // Create a FormData object to send files
+          const formData = new FormData();
+          formData.append("file", files[0]); // Assuming you are uploading a single file
 
-          // After successful upload, hide the spinner
-          hideLoadingSpinner();
+          // Perform the file upload logic here, e.g., using fetch or XMLHttpRequest
+          const response = await fetch("/upload", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            // Hide the spinner on success
+            showLoadingSpinner();
+          } else {
+            // Hide the spinner on error
+            hideLoadingSpinner();
+            alert("Error uploading file.");
+          }
         } catch (error) {
           console.error("Error:", error);
-          hideLoadingSpinner(); // Hide the spinner in case of an error
-          // Handle the error and show an error message to the user
+          // Hide the spinner in case of an error
+          hideLoadingSpinner();
+            alert("An error occurred while uploading the file.");
         }
+      }
 
-        console.log("Upload button clicked");
+      function showLoadingSpinner() {
+          console.log("Showing loading spinner");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        loadingSpinner.classList.remove("d-none");
+      }
+
+      function hideLoadingSpinner() {
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        loadingSpinner.classList.add("d-none");
       }
     </script>
   </body>

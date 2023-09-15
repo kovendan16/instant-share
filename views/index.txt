@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>instant share</title>
+    <!-- Include Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <!-- Include FontAwesome CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    />
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+      }
+
+      form {
+        background-color: #fff;
+        padding: 1rem;
+        border-radius: 5px;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        max-width: 500px; /* Set a fixed maximum width for the form */
+        margin: 0 auto; /* Center the form horizontally */
+      }
+
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+
+      input[type="file"],
+      input[type="password"],
+      select,
+      input[type="number"] {
+        width: 100%; /* Make form elements take up the full width of the container */
+        margin-bottom: 0.5rem;
+      }
+
+      button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: 100%; /* Make the button take up the full width of the container */
+      }
+
+      button:hover {
+        background-color: #0069d9;
+      }
+      /* Style the copy icon */
+      .copy-icon {
+        font-size: 15px; /* Adjust the font size as needed */
+        margin-left: 5px; /* Add some spacing between the link and the icon */
+        cursor: pointer; /* Change the cursor to a pointer on hover for better usability */
+        color: #222; /* Change the icon color (blue in this example) */
+      }
+
+      /* Style the copy icon on hover */
+      .copy-icon:hover {
+        color: #0069d9; /* Change the icon color on hover (a different shade of blue in this example) */
+      }
+      /* Style for the email icon */
+      .email-icon {
+        font-size: 20px; /* Adjust the font size as needed */
+
+        color: #222;
+        margin-left: 10px; /* Add margin to separate it from the copy icon */
+        cursor: pointer;
+      }
+
+      /* Style for the email icon on hover */
+      .email-icon:hover {
+        color: #0056b3; /* Change the color on hover */
+      }
+      /* CSS to style the alert-success box */
+      .alert-success {
+        background-color: #d4edda; /* Background color for success alerts */
+        color: #155724; /* Text color for success alerts */
+        border: 1px solid #c3e6cb; /* Border color for success alerts */
+        padding: 10px; /* Adjust this value to control the padding */
+        margin: 10px; /* Adjust this value to control the margin */
+        word-wrap: break-word; /* Wrap long words to the next line */
+        white-space: normal; /* Allow text to wrap within the container */
+      }
+    </style>
+  </head>
+  <body>
+    <% if (locals.fileLinks && locals.fileLinks.length > 0) { %>
+    <div class="container mt-3">
+      <div class="alert-success">
+        <% if (locals.fileLinks.length > 1) { %> Your files are uploaded. You
+        can download all of them using the following button:
+
+        <button
+          class="btn btn-primary"
+          id="send_all"
+          onclick="sendLinksViaEmail()"
+        >
+          Send all
+        </button>
+
+        <% } else { %> Your file is uploaded. You can download it by clicking or
+        copy link to share: <% } %> <% for (const fileLink of locals.fileLinks)
+        { %>
+        <span>
+          <a href="<%= fileLink %>"><%= fileLink %></a>
+          <span class="copy-icon" onclick="copyToClipboard('<%= fileLink %>')">
+            <i class="fas fa-copy"></i>
+            <!-- FontAwesome copy icon -->
+          </span>
+          <i
+            class="fas fa-envelope email-icon"
+            onclick="shareViaEmail('<%= fileLink %>')"
+          ></i>
+        </span>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="container mt-3">
+      <form
+        action="/upload"
+        method="post"
+        enctype="multipart/form-data"
+        id="uploadForm"
+      >
+        <label for="file"
+          >File: multiple files can be acceptable file limit 50</label
+        >
+        <input type="file" id="file" name="file" required multiple />
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="optional"
+        />
+        <label for="expiration">Expiration (e.g., hours/days/minutes):</label>
+        <select
+          class="custom-select"
+          id="expirationUnit"
+          name="expirationUnit"
+          required
+        >
+          <option value="" disabled selected>Select time</option>
+          <option value="hours">Hours</option>
+          <option value="days">Days</option>
+          <option value="minutes">Minutes</option>
+        </select>
+        <input
+          type="number"
+          id="expiration"
+          name="expiration"
+          placeholder="e.g., 1"
+          required
+        />
+        <button type="submit" class="btn btn-primary">Share</button>
+        <div style="margin-top: 10px"></div>
+        <button type="button" class="btn btn-danger" onclick="resetForm()">
+          Reset
+        </button>
+      </form>
+    </div>
+
+    <!-- Include Bootstrap JS and Popper.js (if needed) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      async function copyToClipboard(text) {
+        try {
+          // Copy the link to the clipboard
+          await navigator.clipboard.writeText(`${text}  click to download  `);
+          alert("Copied to clipboard");
+        } catch (error) {
+          console.error("Failed to copy link to clipboard: ", error);
+        }
+      }
+
+      function resetForm() {
+        document.getElementById("uploadForm").reset();
+        // Redirect to the homepage
+        window.location.href = "/";
+      }
+
+      function shareViaEmail(link) {
+        const subject = "Check out this link";
+        const emailBody = `I wanted to share this link with you:\n\n${link}`;
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(
+          subject
+        )}&body=${encodeURIComponent(emailBody)}`;
+        // Open the user's default email client with the mailto link
+        window.location.href = mailtoLink;
+      }
+      // ... (your other functions)
+      function sendLinksViaEmail() {
+        const subject = "Check out these links";
+        let emailBody = "I wanted to share these links with you:\n\n";
+
+        const fileLinks = document.querySelectorAll("a");
+        for (const fileLink of fileLinks) {
+          emailBody += `links:${fileLink.href}\n`;
+        }
+
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(
+          subject
+        )}&body=${encodeURIComponent(emailBody)}`;
+        window.location.href = mailtoLink;
+      }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
+  </body>
+</html>

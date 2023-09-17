@@ -227,7 +227,7 @@
         const mailtoLink = `mailto:?subject=${encodeURIComponent(
           subject
         )}&body=${encodeURIComponent(emailBody)}`;
-
+ssssss
         window.location.href = mailtoLink;
       }
 
@@ -265,13 +265,11 @@
           } else {
             // Hide the spinner on error
             hideLoadingSpinner();
-            
           }
         } catch (error) {
           console.error("Error:", error);
           // Hide the spinner in case of an error
           hideLoadingSpinner();
-          alert("An error occurred while uploading the file.");
         }
       }
 

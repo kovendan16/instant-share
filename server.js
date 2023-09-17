@@ -28,7 +28,7 @@ var storage = multer.diskStorage({
   },
 });
 
-let maxSize = 1024 * 1024 * 102 * 5;
+let maxSize = 1024 * 1024 *  5;
 
 let upload = multer({
   storage: storage,

@@ -1,1 +1,1 @@
-cc
+act as a img storeage

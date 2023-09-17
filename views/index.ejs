@@ -233,9 +233,16 @@
 
       async function uploadFile() {
         const fileInput = document.getElementById("file");
+        const expirationUnitSelect = document.getElementById("expirationUnit");
+        const expirationInput = document.getElementById("expiration");
+
         const files = fileInput.files;
 
-        if (files.length === 0) {
+        if (
+          files.length === 0 ||
+          !expirationUnitSelect.value ||
+          !expirationInput.value
+        ) {
           return;
         }
 
@@ -258,19 +265,20 @@
           } else {
             // Hide the spinner on error
             hideLoadingSpinner();
-            alert("Error uploading file.");
+            
           }
         } catch (error) {
           console.error("Error:", error);
           // Hide the spinner in case of an error
           hideLoadingSpinner();
-            alert("An error occurred while uploading the file.");
+          alert("An error occurred while uploading the file.");
         }
       }
 
       function showLoadingSpinner() {
-          console.log("Showing loading spinner");
+        console.log("Showing loading spinner");
         const loadingSpinner = document.getElementById("loadingSpinner");
+
         loadingSpinner.classList.remove("d-none");
       }
 

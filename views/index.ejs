@@ -97,6 +97,41 @@
     </style>
   </head>
   <body>
+    <!--<nav
+      class="navbar navbar-expand-lg navbar-light bg-light"
+      style="background-color: #fff !important"
+    >
+      <div class="container">
+        <a class="navbar-brand" href="#" style="color: #007bff "
+          >Instant Share</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav" >
+          <ul class="navbar-nav ml-auto" ;">
+            <li class="nav-item">
+              <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  -->
     <% if (locals.fileLinks && locals.fileLinks.length > 0) { %>
     <div class="container mt-3">
       <div class="alert-success">
@@ -138,7 +173,7 @@
         id="uploadForm"
       >
         <label for="file"
-          >File: multiple files can be acceptable file limit :2GB</label
+          >File: multiple files can be acceptable file limit 2GB</label
         >
         <input type="file" id="file" name="file" required multiple />
         <label for="password">Password:</label>
@@ -182,6 +217,38 @@
         <span class="sr-only">Loading...</span>
       </div>
     </div>
+    <section
+      class="container mt-5"
+      style="background-color: #f5f5f5; padding: 20px; border-radius: 5px"
+    >
+      <div class="row">
+        <div class="col-md-8 offset-md-2">
+          <h2 class="text-center mb-4">Instructions</h2>
+          <p>
+            Welcome to Instant Share! Follow these simple steps to share your
+            files:
+          </p>
+          <ol>
+            <li>
+              Click the "Choose File" button to select the files you want to
+              share.
+            </li>
+            <li>
+              Optionally, set a password to protect your files (optional).
+            </li>
+            <li>
+              Select the expiration time for your shared files
+              (hours/days/minutes).
+            </li>
+            <li>Click the "Share" button to upload and share your files.</li>
+          </ol>
+          <p>
+            Once your files are uploaded, you'll receive links to share. You can
+            also copy the link to the clipboard or send it via email.
+          </p>
+        </div>
+      </div>
+    </section>
 
     <!-- Include Bootstrap JS and Popper.js (if needed) -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

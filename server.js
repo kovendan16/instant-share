@@ -37,7 +37,7 @@ let upload = multer({
   },
   fileFilter: function (req, file, cb) {
     console.log(file.mimetype);
-    let filetypes = /jpeg|jpg|png|gif|pdf|zip|docx|doc/;
+    let filetypes = /jpeg|jpg|png|gif|pdf|zip|docx|doc|mp4|mp3/;
     let mimetype = filetypes.test(file.mimetype);
     let extname = filetypes.test(path.extname(file.originalname).toLowerCase());
 

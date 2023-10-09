@@ -1,6 +1,3 @@
 User-agent: *
-Disallow: /private/
-Disallow: /restricted/
-Disallow: /admin/
-
-Allow: /public/
+Disallow:
+Sitemap: https://portfoliohtml.onrender.com//sitemap.xml

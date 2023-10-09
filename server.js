@@ -11,7 +11,15 @@ const port = 4000;
 const express = require("express");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+app.get('/sitemap.xml', (req, res) => {
+  const filePath = path.join(__dirname, 'sitemap.xml');
+  res.sendFile(filePath);
+});
 
+app.get('/robots.txt', (req, res) => {
+  const filePath = path.join(__dirname, 'robots.txt');
+  res.sendFile(filePath);
+});
 var storage = multer.diskStorage({
   destination: function (req, file, cb) {
     //some work

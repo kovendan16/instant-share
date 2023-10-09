@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /private/
-Allow: /public/
-Sitemap: https://insatant-share.onrender.com/sitemap.xml

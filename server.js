@@ -1,31 +1,25 @@
 require("dotenv").config();
+const express = require("express");
 const multer = require("multer");
 const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
+const { encryptId, decryptId } = require("./utili/enc");
 const File = require("./models/File");
 const path = require("path");
-const fs = require("fs");
-const { encryptId, decryptId } = require("./utili/enc"); // Add the path to your encryption.js file
+const { log } = require("console");
 
-const port = 4000;
-const express = require("express");
 const app = express();
-app.use(express.urlencoded({ extended: true }));
-app.get('/sitemap.xml', (req, res) => {
-  const filePath = path.join(__dirname, 'sitemap.xml');
-  res.sendFile(filePath);
-});
+const port = process.env.PORT || 4000;
 
-app.get('/robots.txt', (req, res) => {
-  const filePath = path.join(__dirname, 'robots.txt');
-  res.sendFile(filePath);
-});
-var storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    //some work
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+
+// Multer configuration for file upload
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
     cb(null, "uploads");
   },
-  filename: function (req, file, cb) {
+  filename: (req, file, cb) => {
     cb(
       null,
       file.originalname.replace(/\.[^/.]+$/, "") +
@@ -36,18 +30,19 @@ var storage = multer.diskStorage({
   },
 });
 
-let maxSize = 1024 * 1024 * 1024* 8;
+const maxSize = 1024 * 1024 * 1024 * 8;
 
-let upload = multer({
+const upload = multer({
   storage: storage,
   limits: {
     fileSize: maxSize,
   },
-  fileFilter: function (req, file, cb) {
-    console.log(file.mimetype);
-    let filetypes = /jpeg|jpg|png|gif|pdf|zip|docx|doc|mp4|mp3/;
-    let mimetype = filetypes.test(file.mimetype);
-    let extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+  fileFilter: (req, file, cb) => {
+    const filetypes = /jpeg|jpg|png|gif|pdf|zip|docx|doc|mp4|mp3/;
+    const mimetype = filetypes.test(file.mimetype);
+    const extname = filetypes.test(
+      path.extname(file.originalname).toLowerCase()
+    );
 
     if (mimetype && extname) {
       return cb(null, true);
@@ -59,27 +54,33 @@ let upload = multer({
   },
 }).array("file");
 
-mongoose.set("strictQuery", false);
-
+// Database connection
 mongoose.connect(
   process.env.DATABASE_URL,
   { useNewUrlParser: true, useUnifiedTopology: true },
   (err) => {
-    if (!err) {
-      console.log("db connected");
+    if (err) {
+      console.error("Error connecting to the database:", err);
     } else {
-      console.log(err);
+      console.log("Database connected successfully");
     }
   }
 );
 
+// Set view engine
 app.set("view engine", "ejs");
 
+// Routes
 app.get("/", (req, res) => {
   return res.render("index");
-}); // ...
+});
+const encryptPathId = (pathId) => {
+  // Implement your encryption logic here
+  // Replace the following line with your actual encryption code
+  return pathId;
+};
 
-app.post("/upload", async (req, res, next) => {
+app.post("/upload", async (req, res) => {
   try {
     upload(req, res, async (err) => {
       if (err) {
@@ -98,8 +99,8 @@ app.post("/upload", async (req, res, next) => {
         // Process each uploaded file
         for (const file of files) {
           const fileData = new File({
-            path: file.path,
-            originalName: file.originalname,
+            path: encryptId(file.path),
+            originalName: encryptId(file.originalname),
           });
 
           if (req.body.password != null && req.body.password !== "") {
@@ -111,7 +112,7 @@ app.post("/upload", async (req, res, next) => {
 
           // Calculate the expiration time based on user input
           const customExpiration = parseInt(req.body.expiration);
-          const expirationUnit = req.body.expirationUnit;
+          const expirationUnit = req.body.expirationUnit || "minutes";
           const expirationInMilliseconds =
             customExpiration *
             (expirationUnit === "hours"
@@ -130,6 +131,11 @@ app.post("/upload", async (req, res, next) => {
 
           // Push the file link to the array
           fileLinks.push(fileLink);
+
+          // Schedule a task to delete the data after the expiration time
+          setTimeout(async () => {
+            await File.findByIdAndRemove(savedFile._id);
+          }, expirationInMilliseconds);
         }
 
         // Render the response with the array of file links
@@ -145,35 +151,29 @@ app.post("/upload", async (req, res, next) => {
   }
 });
 
-// ...
-
-app.route("/file/:id").get((req, res) => {
-  // ... (existing code)
-
-  // Retrieve the custom expiration unit from the query parameter
-  const customExpirationUnit = req.query.expirationUnit;
-
-  // ... (existing code)
-
-  async function handleDownload(req, res) {
+app.route("/file/:id").get(async (req, res) => {
+  try {
     const decryptedId = decryptId(req.params.id);
     const file = await File.findById(decryptedId);
-
+    console.log(decryptId);
     const expirationTime = parseInt(req.query.expires, 10);
 
     if (!expirationTime || Date.now() > expirationTime) {
       return res.status(403).send({ message: "The link has expired." });
     }
 
-    if (file.password != null) {
-      if (req.body.password == null) {
-        res.render("password");
-        return;
+    if (file && file.password) {
+      if (!req.query.password) {
+        return res.render("password");
       }
 
-      if (!(await bcrypt.compare(req.body.password, file.password))) {
-        res.render("password", { error: true });
-        return;
+      const passwordMatch = await bcrypt.compare(
+        req.query.password,
+        file.password
+      );
+
+      if (!passwordMatch) {
+        return res.render("password", { error: true });
       }
     }
 
@@ -189,59 +189,13 @@ app.route("/file/:id").get((req, res) => {
           .send({ message: "An error occurred while downloading the file." });
       }
     });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).send("Internal Server Error");
   }
-
-  // Call the handleDownload function with the customExpirationUnit
-  handleDownload(req, res);
-});
-app.route("/file/:id").post(async (req, res) => {
-  // ... (existing code)
-
-  // Retrieve the custom expiration unit from the query parameter
-  const customExpirationUnit = req.query.expirationUnit;
-
-  // ... (existing code)
-
-  async function handleDownload(req, res) {
-    const decryptedId = decryptId(req.params.id);
-    const file = await File.findById(decryptedId);
-
-    const expirationTime = parseInt(req.query.expires, 10);
-
-    if (!expirationTime || Date.now() > expirationTime) {
-      return res.status(403).send({ message: "The link has expired." });
-    }
-
-    if (file.password != null) {
-      if (req.body.password == null) {
-        res.render("password");
-        return;
-      }
-
-      if (!(await bcrypt.compare(req.body.password, file.password))) {
-        res.render("password", { error: true });
-        return;
-      }
-    }
-
-    file.downloadCount++;
-
-    console.log(file.downloadCount);
-
-    res.download(file.path, file.originalName, (err) => {
-      if (err) {
-        console.error(err);
-        return res
-          .status(500)
-          .send({ message: "An error occurred while downloading the file." });
-      }
-    });
-  }
-
-  // Call the handleDownload function with the customExpirationUnit
-  handleDownload(req, res);
 });
 
-app.listen(process.env.PORT || port, (req, res) => {
-  console.log(`server started on port ${port}`);
+// Start server
+app.listen(port, () => {
+  console.log(`Server started on port ${port}`);
 });

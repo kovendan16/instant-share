@@ -98,8 +98,8 @@ app.post("/upload", async (req, res) => {
         // Process each uploaded file
         for (const file of files) {
           const fileData = new File({
-            path: encryptId(file.path),
-            originalName: file.originalname,
+            path: file.path,
+            originalName: encryptId(file.originalname),
           });
 
           if (req.body.password != null && req.body.password !== "") {

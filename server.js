@@ -6,7 +6,6 @@ const bcrypt = require("bcrypt");
 const { encryptId, decryptId } = require("./utili/enc");
 const File = require("./models/File");
 const path = require("path");
-const { log } = require("console");
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -100,7 +99,7 @@ app.post("/upload", async (req, res) => {
         for (const file of files) {
           const fileData = new File({
             path: encryptId(file.path),
-            originalName: encryptId(file.originalname),
+            originalName: file.originalname,
           });
 
           if (req.body.password != null && req.body.password !== "") {
@@ -155,7 +154,7 @@ app.route("/file/:id").get(async (req, res) => {
   try {
     const decryptedId = decryptId(req.params.id);
     const file = await File.findById(decryptedId);
-    console.log(decryptId);
+
     const expirationTime = parseInt(req.query.expires, 10);
 
     if (!expirationTime || Date.now() > expirationTime) {

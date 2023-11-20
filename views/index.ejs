@@ -1,204 +1,463 @@
-require("dotenv").config();
-const express = require("express");
-const multer = require("multer");
-const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-const { encryptId, decryptId } = require("./utili/enc");
-const File = require("./models/File");
-const path = require("path");
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="google-site-verification"
+      content="lAxRGL7i8gHPK0sVToFYsXrpO6ZHiXTiPcNV3lSItcw"
+    />
 
-const app = express();
-const port = process.env.PORT || 4000;
+    <meta
+      name="keywords"
+      content="instant share, file sharing, web development,  online sharing, one to one share,one to one share"
+    />
+    <meta
+      name="description"
+      content="Share files easily and securely with our file sharing platform. Upload and send documents, images, videos, and more to friends, colleagues, or clients. Fast, reliable, and user-friendly file sharing solution."
+    />
 
-// Middleware
-app.use(express.urlencoded({ extended: true }));
+    <title>one to one share</title>
+    <!-- Include Bootstrap CSS -->
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <!-- Include FontAwesome CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css"
+    />
 
-// Multer configuration for file upload
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads");
-  },
-  filename: (req, file, cb) => {
-    cb(
-      null,
-      file.originalname.replace(/\.[^/.]+$/, "") +
-        "_" +
-        Date.now() +
-        path.extname(file.originalname)
-    );
-  },
-});
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f5f5f5;
+      }
 
-const maxSize = 1024 * 1024 * 1024 * 8;
+      form {
+        background-color: #fff;
+        padding: 1rem;
+        border-radius: 5px;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+        max-width: 500px; /* Set a fixed maximum width for the form */
+        margin: 0 auto; /* Center the form horizontally */
+      }
 
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: maxSize,
-  },
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif|pdf|zip|docx|doc|mp4|mp3/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
+      label {
+        display: block;
+        margin-bottom: 0.5rem;
+      }
 
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
+      input[type="file"],
+      input[type="password"],
+      select,
+      input[type="number"] {
+        width: 100%; /* Make form elements take up the full width of the container */
+        margin-bottom: 0.5rem;
+      }
 
-    cb(
-      "Error: File upload only supports the following filetypes: " + filetypes
-    );
-  },
-}).array("file");
+      button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 5px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        width: 100%; /* Make the button take up the full width of the container */
+      }
 
-// Database connection
-mongoose.connect(
-  process.env.DATABASE_URL,
-  { useNewUrlParser: true, useUnifiedTopology: true },
-  (err) => {
-    if (err) {
-      console.error("Error connecting to the database:", err);
-    } else {
-      console.log("Database connected successfully");
-    }
-  }
-);
+      button:hover {
+        background-color: #0069d9;
+      }
+      /* Style the copy icon */
+      .copy-icon {
+        font-size: 15px; /* Adjust the font size as needed */
+        margin-left: 5px; /* Add some spacing between the link and the icon */
+        cursor: pointer; /* Change the cursor to a pointer on hover for better usability */
+        color: #222; /* Change the icon color (blue in this example) */
+      }
 
-// Set view engine
-app.set("view engine", "ejs");
+      /* Style the copy icon on hover */
+      .copy-icon:hover {
+        color: #0069d9; /* Change the icon color on hover (a different shade of blue in this example) */
+      }
+      /* Style for the email icon */
+      .email-icon {
+        font-size: 20px; /* Adjust the font size as needed */
 
-// Routes
-app.get("/", (req, res) => {
-  return res.render("index");
-});
-/*const encryptPathId = (pathId) => {
-  // Implement your encryption logic here
-  // Replace the following line with your actual encryption code
-  return pathId;
-};
-*/
-app.post("/upload", async (req, res) => {
-  try {
-    upload(req, res, async (err) => {
-      if (err) {
-        if (
-          err instanceof multer.MulterError &&
-          err.code == "LIMIT_FILE_SIZE"
-        ) {
-          return res.send("File size is maximum 2mb");
+        color: #222;
+        margin-left: 10px; /* Add margin to separate it from the copy icon */
+        cursor: pointer;
+      }
+
+      /* Style for the email icon on hover */
+      .email-icon:hover {
+        color: #0056b3; /* Change the color on hover */
+      }
+      /* CSS to style the alert-success box */
+      .alert-success {
+        background-color: #d4edda; /* Background color for success alerts */
+        color: #155724; /* Text color for success alerts */
+        border: 1px solid #c3e6cb; /* Border color for success alerts */
+        padding: 10px; /* Adjust this value to control the padding */
+        margin: 10px; /* Adjust this value to control the margin */
+        word-wrap: break-word; /* Wrap long words to the next line */
+        white-space: normal; /* Allow text to wrap within the container */
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Add these elements to your HTML body -->
+    <div id="user-info" class="container mt-3">
+      <!-- Display user info or login button -->
+    </div>
+
+    <!--<nav
+      class="navbar navbar-expand-lg navbar-light bg-light"
+      style="background-color: #fff !important"
+    >
+      <div class="container">
+        <a class="navbar-brand" href="#" style="color: #007bff "
+          >Instant Share</a
+        >
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-toggle="collapse"
+          data-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav" >
+          <ul class="navbar-nav ml-auto" ;">
+            <li class="nav-item">
+              <a class="nav-link" href="#">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">About</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">Contact</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  -->
+    <% if (locals.fileLinks && locals.fileLinks.length > 0) { %>
+    <div class="container mt-3">
+      <div class="alert-success">
+        <% if (locals.fileLinks.length > 1) { %> Your files are uploaded. You
+        can download all of them using the following button:
+
+        <button
+          class="btn btn-primary"
+          id="send_all"
+          onclick="sendLinksViaEmail()"
+        >
+          Send all
+        </button>
+
+        <% } else { %> Your file is uploaded. You can download it by clicking or
+        copy link to share: <% } %> <% for (const fileLink of locals.fileLinks)
+        { %>
+        <span>
+          <a href="<%= fileLink %>"><%= fileLink %></a>
+          <span class="copy-icon" onclick="copyToClipboard('<%= fileLink %>')">
+            <i class="fas fa-copy"></i>
+            <!-- FontAwesome copy icon -->
+          </span>
+          <i
+            class="fas fa-envelope email-icon"
+            onclick="shareViaEmail('<%= fileLink %>')"
+          ></i>
+        </span>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="container mt-3">
+      <form
+        action="/upload"
+        method="post"
+        enctype="multipart/form-data"
+        id="uploadForm"
+      >
+        <label for="file"
+          >File: multiple files can be acceptable file limit 2GB</label
+        >
+        <input type="file" id="file" name="file" required multiple />
+        <label for="password">Password:</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          placeholder="optional"
+        />
+        <label for="expiration">Expiration (e.g., hours/days/minutes):</label>
+        <select
+          class="custom-select"
+          id="expirationUnit"
+          name="expirationUnit"
+          required
+        >
+          <option value="" disabled selected>Select time</option>
+          <option value="hours">Hours</option>
+          <option value="days">Days</option>
+          <option value="minutes">Minutes</option>
+        </select>
+        <input
+          type="number"
+          id="expiration"
+          name="expiration"
+          placeholder="e.g., 1"
+          required
+        />
+        <button type="submit" class="btn btn-primary">Share</button>
+        <div style="margin-top: 10px"></div>
+        <button type="button" class="btn btn-danger" onclick="resetForm()">
+          Reset
+        </button>
+      </form>
+    </div>
+    <!-- Add a loading spinner element -->
+    <div id="loadingSpinner" class="d-none text-center mt-3">
+      <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+    <section
+      class="container mt-5"
+      style="background-color: #f5f5f5; padding: 20px; border-radius: 5px"
+    >
+      <div class="row">
+        <div class="col-md-8 offset-md-2">
+          <h2 class="text-center mb-4">Instructions</h2>
+          <p>
+            Welcome to Instant Share! Follow these simple steps to share your
+            files:
+          </p>
+          <ol>
+            <li>
+              Click the "Choose File" button to select the files you want to
+              share.
+            </li>
+            <li>
+              Optionally, set a password to protect your files (optional).
+            </li>
+            <li>
+              Select the expiration time for your shared files
+              (hours/days/minutes).
+            </li>
+            <li>Click the "Share" button to upload and share your files.</li>
+          </ol>
+          <p>
+            Once your files are uploaded, you'll receive links to share. You can
+            also copy the link to the clipboard or send it via email.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Include Bootstrap JS and Popper.js (if needed) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
+
+    <script>
+      const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+        appId: "YOUR_APP_ID",
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const auth = firebase.auth();
+
+      auth.onAuthStateChanged((user) => {
+        const userInfoContainer = document.getElementById("user-info");
+
+        if (user) {
+          const displayName = user.displayName;
+          const email = user.email;
+
+          userInfoContainer.innerHTML = `
+          <p>Welcome, ${displayName || email}!</p>
+          <button onclick="logout()">Logout</button>
+        `;
+        } else {
+          userInfoContainer.innerHTML = `
+          <button onclick="login()">Login with Google</button>
+        `;
         }
+      });
 
-        return res.send(err);
-      } else {
-        const files = req.files; // Access uploaded files as an array
-        const fileLinks = [];
+      function login() {
+        const provider = new firebase.auth.GoogleAuthProvider();
 
-        // Process each uploaded file
-        for (const file of files) {
-          const fileData = new File({
-            path: encryptId(file.path),
-            originalName: encryptId(file.originalname),
+        auth
+          .signInWithPopup(provider)
+          .then((result) => {
+            const user = result.user;
+            console.log("User signed in:", user);
+          })
+          .catch((error) => {
+            console.error("Error signing in:", error);
           });
+      }
 
-          if (req.body.password != null && req.body.password !== "") {
-            fileData.password = await bcrypt.hash(req.body.password, 10);
-          }
+      function logout() {
+        auth
+          .signOut()
+          .then(() => {
+            console.log("User signed out");
+          })
+          .catch((error) => {
+            console.error("Error signing out:", error);
+          });
+      }
 
-          const savedFile = await fileData.save();
-          const encryptedId = encryptId(savedFile.id);
+      async function copyToClipboard(text) {
+        try {
+          // Copy the link to the clipboard
+          await navigator.clipboard.writeText(`${text}  click to download  `);
+          alert("Copied to clipboard");
+        } catch (error) {
+          console.error("Failed to copy link to clipboard: ", error);
+        }
+      }
 
-          // Calculate the expiration time based on user input
-          const customExpiration = parseInt(req.body.expiration);
-          const expirationUnit = req.body.expirationUnit || "minutes";
-          const expirationInMilliseconds =
-            customExpiration *
-            (expirationUnit === "hours"
-              ? 60 * 60 * 1000
-              : expirationUnit === "days"
-              ? 24 * 60 * 60 * 1000
-              : 60 * 1000);
+      function resetForm() {
+        document.getElementById("uploadForm").reset();
+        // Redirect to the homepage
+        window.location.href = "/";
+      }
+      function shareViaEmail(link) {
+        const subject = "Check out this link";
+        const emailBody = `I wanted to share this link with you:\n\n${link}`;
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(
+          subject
+        )}&body=${encodeURIComponent(emailBody)}`;
+        // Open the user's default email client with the mailto link
+        window.location.href = mailtoLink;
+      }
 
-          const timestamp = Date.now();
+      function sendLinksViaEmail() {
+        const subject = "Check out these links";
+        let emailBody = "I wanted to share these links with you:\n\n";
 
-          // Calculate the actual expiration time
-          const expirationTime = timestamp + expirationInMilliseconds;
-
-          // Generate the file link for this file
-          const fileLink = `${req.headers.origin}/file/${encryptedId}?expires=${expirationTime}`;
-
-          // Push the file link to the array
-          fileLinks.push(fileLink);
-
-          // Schedule a task to delete the data after the expiration time
-          setTimeout(async () => {
-            await File.findByIdAndRemove(savedFile._id);
-          }, expirationInMilliseconds);
+        const fileLinks = document.querySelectorAll("a");
+        for (const fileLink of fileLinks) {
+          emailBody += `links:${fileLink.href}\n`;
         }
 
-        // Render the response with the array of file links
-        res.render("index", {
-          fileLinks: fileLinks,
+        const mailtoLink = `mailto:?subject=${encodeURIComponent(
+          subject
+        )}&body=${encodeURIComponent(emailBody)}`;
+
+        window.location.href = mailtoLink;
+      }
+
+      function downloadAllLinks() {
+        const linksArray = [];
+        const fileLinks = document.querySelectorAll("a");
+
+        for (const fileLink of fileLinks) {
+          linksArray.push(fileLink.href);
+        }
+
+        const linksText = linksArray.join("\n");
+        const blob = new Blob([linksText], { type: "text/plain" });
+        const link = document.createElement("a");
+
+        link.href = URL.createObjectURL(blob);
+        link.download = "all_links.txt";
+
+        document.body.appendChild(link);
+
+        link.click();
+
+        document.body.removeChild(link);
+      }
+
+      // Example of adding a button to trigger the download
+      const downloadAllBtn = document.getElementById("downloadAllBtn");
+
+      if (downloadAllBtn) {
+        downloadAllBtn.addEventListener("click", downloadAllLinks);
+      }
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault(); // Prevent the default form submission
+
+          try {
+            showLoadingSpinner(); // Show the loading spinner
+
+            const fileInput = document.getElementById("file");
+            const expirationUnitSelect =
+              document.getElementById("expirationUnit");
+            const expirationInput = document.getElementById("expiration");
+
+            const files = fileInput.files;
+
+            if (
+              files.length === 0 ||
+              !expirationUnitSelect.value ||
+              !expirationInput.value
+            ) {
+              hideLoadingSpinner(); // Hide the spinner if form validation fails
+              return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", files[0]); // Assuming you are uploading a single file
+
+            const response = await fetch("/upload", {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              // Hide the spinner on success
+              hideLoadingSpinner();
+            } else {
+              // Hide the spinner on error
+              hideLoadingSpinner();
+              console.error("Error during file upload:", response.statusText);
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            // Hide the spinner in case of an unexpected error
+            showLoadingSpinners();
+          }
         });
-      }
-    });
-  } catch (error) {
-    // Handle any unexpected errors here
-    console.error("Error:", error);
-    return res.status(500).send("Internal Server Error");
-  }
-});
 
-app.route("/file/:id").get(async (req, res) => {
-  try {
-    const decryptedId = decryptId(req.params.id);
-    const file = await File.findById(decryptedId);
-
-    const expirationTime = parseInt(req.query.expires, 10);
-
-    if (!expirationTime || Date.now() > expirationTime) {
-      return res.status(403).send({ message: "The link has expired." });
-    }
-
-    if (file && file.password) {
-      if (!req.query.password) {
-        return res.render("password");
+      function showLoadingSpinner() {
+        console.log("Showing loading spinner");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        loadingSpinner.classList.remove("d-none");
       }
 
-      const passwordMatch = await bcrypt.compare(
-        req.query.password,
-        file.password
-      );
-
-      if (!passwordMatch) {
-        return res.render("password", { error: true });
+      function hideLoadingSpinner() {
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        loadingSpinner.classList.add("d-none");
       }
-    }
-
-    file.downloadCount++;
-
-    console.log(file.downloadCount);
-
-    const decryptedOriginalName = decryptId(file.originalName); // Add this line to decrypt the original name
-
-    const decryptedpath = decryptId(file.path); // Add this line to decrypt the original name
-
-    res.download(decryptedpath, decryptedOriginalName, (err) => {
-      if (err) {
-        console.error(err);
-        return res
-          .status(500)
-          .send({ message: "An error occurred while downloading the file." });
-      }
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    return res.status(500).send("Internal Server Error");
-  }
-});
-
-// Start server
-app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
-});
+    </script>
+  </body>
+</html>

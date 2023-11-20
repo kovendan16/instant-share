@@ -322,7 +322,7 @@
             await hideLoadingSpinner();
           } else {
             // Hide the spinner on error
-            hideLoadingSpinner();
+            await showLoadingSpinner();
           }
         } catch (error) {
           console.error("Error:", error);

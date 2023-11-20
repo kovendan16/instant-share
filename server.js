@@ -73,12 +73,12 @@ app.set("view engine", "ejs");
 app.get("/", (req, res) => {
   return res.render("index");
 });
-const encryptPathId = (pathId) => {
+/*const encryptPathId = (pathId) => {
   // Implement your encryption logic here
   // Replace the following line with your actual encryption code
   return pathId;
 };
-
+*/
 app.post("/upload", async (req, res) => {
   try {
     upload(req, res, async (err) => {
@@ -98,7 +98,7 @@ app.post("/upload", async (req, res) => {
         // Process each uploaded file
         for (const file of files) {
           const fileData = new File({
-            path: file.path,
+            path: encryptId(file.path),
             originalName: encryptId(file.originalname),
           });
 
@@ -159,6 +159,7 @@ app.route("/file/:id").get(async (req, res) => {
 
     if (!expirationTime || Date.now() > expirationTime) {
       return res.status(403).send({ message: "The link has expired." });
+    
     }
 
     if (file && file.password) {
@@ -180,7 +181,11 @@ app.route("/file/:id").get(async (req, res) => {
 
     console.log(file.downloadCount);
 
-    res.download(file.path, file.originalName, (err) => {
+    const decryptedOriginalName = decryptId(file.originalName); // Add this line to decrypt the original name
+
+    const decryptedpath = decryptId(file.path); // Add this line to decrypt the original name
+
+    res.download(decryptedpath, decryptedOriginalName, (err) => {
       if (err) {
         console.error(err);
         return res

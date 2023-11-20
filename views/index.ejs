@@ -303,10 +303,11 @@
         const expirationUnitSelect = document.getElementById("expirationUnit");
         const expirationInput = document.getElementById("expiration");
 
-        showLoadingSpinner(); // Show the loading spinner
-
         try {
           // Create a FormData object to send files
+          
+      await showLoadingSpinner(); // Show the loading spinner
+
           const formData = new FormData();
           formData.append("file", files[0]); // Assuming you are uploading a single file
 
@@ -318,7 +319,7 @@
 
           if (response.ok) {
             // Hide the spinner on success
-            showLoadingSpinner();
+            await hideLoadingSpinner();
           } else {
             // Hide the spinner on error
             hideLoadingSpinner();

@@ -402,6 +402,13 @@
         downloadAllBtn.addEventListener("click", downloadAllLinks);
       }
 
+      document
+        .getElementById("uploadForm")
+        .addEventListener("submit", async function (event) {
+          event.preventDefault(); // Prevent the default form submission
+          await uploadFile(); // Call the function to handle the file upload
+        });
+
       async function uploadFile() {
         const fileInput = document.getElementById("file");
         const expirationUnitSelect = document.getElementById("expirationUnit");
@@ -417,13 +424,8 @@
           return;
         }
 
-        await showLoadingSpinner(); // Show the loading spinner
-        document
-          .getElementById("uploadForm")
-          .addEventListener("submit", async function (event) {
-            event.preventDefault(); // Prevent the default form submission
-            await uploadFile(); // Call the function to handle the file upload
-          });
+        showLoadingSpinner(); // Show the loading spinner
+
         try {
           // Create a FormData object to send files
           const formData = new FormData();
@@ -437,23 +439,27 @@
 
           if (response.ok) {
             // Hide the spinner on success
-            await hideLoadingSpinner();
+            hideLoadingSpinner();
+            // You may want to perform additional actions here on successful upload
           } else {
             // Hide the spinner on error
-            await showLoadingSpinner();
+            hideLoadingSpinner();
+            // You may want to handle errors or display an error message here
           }
         } catch (error) {
           console.error("Error:", error);
           // Hide the spinner in case of an error
-          await hideLoadingSpinner();
+          hideLoadingSpinner();
+          // You may want to handle errors or display an error message here
         }
       }
 
       function showLoadingSpinner() {
         console.log("Showing loading spinner");
         const loadingSpinner = document.getElementById("loadingSpinner");
-
+        const loadingText = document.getElementById("loadingText");
         loadingSpinner.classList.remove("d-none");
+        loadingText.textContent = "Uploading...";
       }
 
       function hideLoadingSpinner() {

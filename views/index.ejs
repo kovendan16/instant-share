@@ -4,21 +4,7 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="google-site-verification"
-      content="lAxRGL7i8gHPK0sVToFYsXrpO6ZHiXTiPcNV3lSItcw"
-    />
-
-    <meta
-      name="keywords"
-      content="instant share, file sharing, web development,  online sharing, one to one share,one to one share"
-    />
-    <meta
-      name="description"
-      content="Share files easily and securely with our file sharing platform. Upload and send documents, images, videos, and more to friends, colleagues, or clients. Fast, reliable, and user-friendly file sharing solution."
-    />
-
-    <title>one to one share</title>
+    <title>instant share</title>
     <!-- Include Bootstrap CSS -->
     <link
       rel="stylesheet"
@@ -111,11 +97,6 @@
     </style>
   </head>
   <body>
-    <!-- Add these elements to your HTML body -->
-    <div id="user-info" class="container mt-3">
-      <!-- Display user info or login button -->
-    </div>
-
     <!--<nav
       class="navbar navbar-expand-lg navbar-light bg-light"
       style="background-color: #fff !important"
@@ -221,7 +202,9 @@
           placeholder="e.g., 1"
           required
         />
-        <button type="submit" class="btn btn-primary">Share</button>
+        <button type="submit" class="btn btn-primary" onclick="uploadFile()">
+          Share
+        </button>
         <div style="margin-top: 10px"></div>
         <button type="button" class="btn btn-danger" onclick="resetForm()">
           Reset
@@ -272,66 +255,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore.js"></script>
-
     <script>
-      const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_AUTH_DOMAIN",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_STORAGE_BUCKET",
-        messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-        appId: "YOUR_APP_ID",
-      };
-
-      firebase.initializeApp(firebaseConfig);
-      const auth = firebase.auth();
-
-      auth.onAuthStateChanged((user) => {
-        const userInfoContainer = document.getElementById("user-info");
-
-        if (user) {
-          const displayName = user.displayName;
-          const email = user.email;
-
-          userInfoContainer.innerHTML = `
-          <p>Welcome, ${displayName || email}!</p>
-          <button onclick="logout()">Logout</button>
-        `;
-        } else {
-          userInfoContainer.innerHTML = `
-          <button onclick="login()">Login with Google</button>
-        `;
-        }
-      });
-
-      function login() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-
-        auth
-          .signInWithPopup(provider)
-          .then((result) => {
-            const user = result.user;
-            console.log("User signed in:", user);
-          })
-          .catch((error) => {
-            console.error("Error signing in:", error);
-          });
-      }
-
-      function logout() {
-        auth
-          .signOut()
-          .then(() => {
-            console.log("User signed out");
-          })
-          .catch((error) => {
-            console.error("Error signing out:", error);
-          });
-      }
-
       async function copyToClipboard(text) {
         try {
           // Copy the link to the clipboard
@@ -347,6 +271,7 @@
         // Redirect to the homepage
         window.location.href = "/";
       }
+
       function shareViaEmail(link) {
         const subject = "Check out this link";
         const emailBody = `I wanted to share this link with you:\n\n${link}`;
@@ -356,7 +281,7 @@
         // Open the user's default email client with the mailto link
         window.location.href = mailtoLink;
       }
-
+      // ... (your other functions)
       function sendLinksViaEmail() {
         const subject = "Check out these links";
         let emailBody = "I wanted to share these links with you:\n\n";
@@ -373,56 +298,10 @@
         window.location.href = mailtoLink;
       }
 
-      function downloadAllLinks() {
-        const linksArray = [];
-        const fileLinks = document.querySelectorAll("a");
-
-        for (const fileLink of fileLinks) {
-          linksArray.push(fileLink.href);
-        }
-
-        const linksText = linksArray.join("\n");
-        const blob = new Blob([linksText], { type: "text/plain" });
-        const link = document.createElement("a");
-
-        link.href = URL.createObjectURL(blob);
-        link.download = "all_links.txt";
-
-        document.body.appendChild(link);
-
-        link.click();
-
-        document.body.removeChild(link);
-      }
-
-      // Example of adding a button to trigger the download
-      const downloadAllBtn = document.getElementById("downloadAllBtn");
-
-      if (downloadAllBtn) {
-        downloadAllBtn.addEventListener("click", downloadAllLinks);
-      }
-
-      document
-        .getElementById("uploadForm")
-        .addEventListener("submit", async function (event) {
-          event.preventDefault(); // Prevent the default form submission
-          await uploadFile(); // Call the function to handle the file upload
-        });
-
       async function uploadFile() {
         const fileInput = document.getElementById("file");
         const expirationUnitSelect = document.getElementById("expirationUnit");
         const expirationInput = document.getElementById("expiration");
-
-        const files = fileInput.files;
-
-        if (
-          files.length === 0 ||
-          !expirationUnitSelect.value ||
-          !expirationInput.value
-        ) {
-          return;
-        }
 
         showLoadingSpinner(); // Show the loading spinner
 
@@ -439,27 +318,23 @@
 
           if (response.ok) {
             // Hide the spinner on success
-            hideLoadingSpinner();
-            // You may want to perform additional actions here on successful upload
+            showLoadingSpinner();
           } else {
             // Hide the spinner on error
             hideLoadingSpinner();
-            // You may want to handle errors or display an error message here
           }
         } catch (error) {
           console.error("Error:", error);
           // Hide the spinner in case of an error
           hideLoadingSpinner();
-          // You may want to handle errors or display an error message here
         }
       }
 
       function showLoadingSpinner() {
         console.log("Showing loading spinner");
         const loadingSpinner = document.getElementById("loadingSpinner");
-        const loadingText = document.getElementById("loadingText");
+
         loadingSpinner.classList.remove("d-none");
-        loadingText.textContent = "Uploading...";
       }
 
       function hideLoadingSpinner() {

@@ -267,7 +267,8 @@
       }
 
       async function resetForm() {
-      await showLoadingSpinner()
+        await showLoadingSpinner();
+
         document.getElementById("uploadForm").reset();
         // Redirect to the homepage
         window.location.href = "/";
@@ -298,7 +299,6 @@
 
         window.location.href = mailtoLink;
       }
-
       async function uploadFile() {
         const fileInput = document.getElementById("file");
         const expirationUnitSelect = document.getElementById("expirationUnit");
@@ -306,11 +306,11 @@
 
         try {
           // Create a FormData object to send files
-          
-      await showLoadingSpinner(); // Show the loading spinner
+          // Show the loading spinner
+          await showLoadingSpinner();
 
           const formData = new FormData();
-          formData.append("file", files[0]); // Assuming you are uploading a single file
+          formData.append("file", fileInput.files[0]); // Assuming you are uploading a single file
 
           // Perform the file upload logic here, e.g., using fetch or XMLHttpRequest
           const response = await fetch("/upload", {
@@ -320,7 +320,7 @@
 
           if (response.ok) {
             // Hide the spinner on success
-             await hideLoadingSpinner();
+            await hideLoadingSpinner();
           } else {
             // Hide the spinner on error
             await showLoadingSpinner();

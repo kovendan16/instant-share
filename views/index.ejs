@@ -171,7 +171,7 @@
         method="post"
         enctype="multipart/form-data"
         id="uploadForm"
-      >
+       onsubmit="uploadFile(event)">
         <label for="file"
           >File: multiple files can be acceptable file limit 2GB</label
         >
@@ -202,7 +202,7 @@
           placeholder="e.g., 1"
           required
         />
-        <button type="submit" class="btn btn-primary" onclick="uploadFile()">
+        <button type="submit" class="btn btn-primary">
           Share
         </button>
         <div style="margin-top: 10px"></div>
@@ -299,7 +299,8 @@
 
         window.location.href = mailtoLink;
       }
-      async function uploadFile() {
+      async function uploadFile(e) {
+            e.preventDefault()
     
         const fileInput = document.getElementById("file");
         const expirationUnitSelect = document.getElementById("expirationUnit");

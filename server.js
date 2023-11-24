@@ -37,7 +37,7 @@ const upload = multer({
     fileSize: maxSize,
   },
   fileFilter: (req, file, cb) => {
-    const filetypes = /jpeg|jpg|png|gif|pdf|zip|docx|doc|mp4|mp3/;
+    const filetypes = /jpeg|jpg|png|gif|pdf|zip|docx|doc|mp4|mp3|webm/;
     const mimetype = filetypes.test(file.mimetype);
     const extname = filetypes.test(
       path.extname(file.originalname).toLowerCase()
@@ -47,7 +47,7 @@ const upload = multer({
       return cb(null, true);
     }
 
-    cb(
+    return cb(
       "Error: File upload only supports the following filetypes: " + filetypes
     );
   },
@@ -138,7 +138,7 @@ app.post("/upload", async (req, res) => {
         }
 
         // Render the response with the array of file links
-        res.render("index", {
+        return res.render("index", {
           fileLinks: fileLinks,
         });
       }
@@ -150,6 +150,8 @@ app.post("/upload", async (req, res) => {
   }
 });
 
+// ... (existing code)
+
 app.route("/file/:id").get(async (req, res) => {
   try {
     const decryptedId = decryptId(req.params.id);
@@ -158,33 +160,36 @@ app.route("/file/:id").get(async (req, res) => {
     const expirationTime = parseInt(req.query.expires, 10);
 
     if (!expirationTime || Date.now() > expirationTime) {
-      return res.status(403).send({ message: "The link has expired." });
-    
+      return res.status(403).render("expired");
     }
 
+    // Check if the file is password protected
     if (file && file.password) {
+      // If no password provided in the request, render the password input form
       if (!req.query.password) {
         return res.render("password");
       }
 
+      // Compare the provided password with the hashed password stored in the database
       const passwordMatch = await bcrypt.compare(
         req.query.password,
         file.password
       );
 
+      // If the password doesn't match, render the password input form with an error
       if (!passwordMatch) {
         return res.render("password", { error: true });
       }
     }
 
+    // Increment the download count for the file
     file.downloadCount++;
 
-    console.log(file.downloadCount);
+    // Decrypt the original name and file path
+    const decryptedOriginalName = decryptId(file.originalName);
+    const decryptedpath = decryptId(file.path);
 
-    const decryptedOriginalName = decryptId(file.originalName); // Add this line to decrypt the original name
-
-    const decryptedpath = decryptId(file.path); // Add this line to decrypt the original name
-
+    // Use res.download to initiate the file download
     res.download(decryptedpath, decryptedOriginalName, (err) => {
       if (err) {
         console.error(err);
@@ -198,7 +203,48 @@ app.route("/file/:id").get(async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
+app.route("/file/:id").post(async (req, res) => {
+  try {
+    const decryptedId = decryptId(req.params.id);
+    const file = await File.findById(decryptedId);
 
+    const expirationTime = parseInt(req.query.expires, 10);
+
+    if (!expirationTime || Date.now() > expirationTime) {
+      return res.status(403).send({ message: "The link has expired." });
+    }
+
+    if (file.password != null) {
+      if (req.body.password == null) {
+        res.render("password");
+        return;
+      }
+
+      if (!(await bcrypt.compare(req.body.password, file.password))) {
+        res.render("password", { error: true });
+        return;
+      }
+    }
+
+    file.downloadCount++;
+
+    const decryptedOriginalName = decryptId(file.originalName);
+    const decryptedpath = decryptId(file.path);
+
+    // Use res.download to initiate the file download
+    res.download(decryptedpath, decryptedOriginalName, (err) => {
+      if (err) {
+        console.error(err);
+        return res
+          .status(500)
+          .send({ message: "An error occurred while downloading the file." });
+      }
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).send("Internal Server Error");
+  }
+});
 // Start server
 app.listen(port, () => {
   console.log(`Server started on port ${port}`);

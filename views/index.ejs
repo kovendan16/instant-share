@@ -171,6 +171,7 @@
         method="post"
         enctype="multipart/form-data"
         id="uploadForm"
+      >
         <label for="file"
           >File: multiple files can be acceptable file limit 2GB</label
         >
@@ -200,8 +201,9 @@
           name="expiration"
           placeholder="e.g., 1"
           required
+          oninput="validateExpiration(this)"
         />
-        <button type="submit" class="btn btn-primary" onclick="uploadFile">
+        <button type="submit" class="btn btn-primary" onclick="uploadFile()">
           Share
         </button>
         <div style="margin-top: 10px"></div>
@@ -299,7 +301,6 @@
         window.location.href = mailtoLink;
       }
       async function uploadFile() {
-    
         const fileInput = document.getElementById("file");
         const expirationUnitSelect = document.getElementById("expirationUnit");
         const expirationInput = document.getElementById("expiration");
@@ -307,9 +308,17 @@
         try {
           // Create a FormData object to send files
           // Show the loading spinner
-          await showLoadingSpinner();
+          if (!fileInput.files || fileInput.files.length === 0) {
+            // If there are no files selected
+            return res.status(400).json({ error: "No files selected." });
+            // Display a message or take other actions
 
+            // Exit the function early
+          }
+
+          await showLoadingSpinner();
           const formData = new FormData();
+
           formData.append("file", fileInput.files[0]); // Assuming you are uploading a single file
 
           // Perform the file upload logic here, e.g., using fetch or XMLHttpRequest
@@ -342,6 +351,17 @@
       function hideLoadingSpinner() {
         const loadingSpinner = document.getElementById("loadingSpinner");
         loadingSpinner.classList.add("d-none");
+      }
+
+      function validateExpiration(input) {
+        // Get the entered value
+        const value = parseInt(input.value);
+
+        // Check if the value is a positive number
+        if (isNaN(value) || value <= 0) {
+          // If not a positive number, set the value to 1
+          input.value = null;
+        }
       }
     </script>
   </body>

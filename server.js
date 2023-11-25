@@ -94,8 +94,6 @@ app.post("/upload", async (req, res) => {
       } else {
         const files = req.files; // Access uploaded files as an array
         const fileLinks = [];
-        // ...
-        // ...
 
         // Process each uploaded file
         for (const file of files) {
@@ -125,12 +123,7 @@ app.post("/upload", async (req, res) => {
           const timestamp = Date.now();
 
           // Calculate the actual expiration time
-          const expirationTime =
-            expirationUnit === "minutes"
-              ? timestamp + expirationInMilliseconds
-              : expirationUnit === "hours"
-              ? timestamp + customExpiration * 60 * 60 * 1000
-              : timestamp + customExpiration * 24 * 60 * 60 * 1000;
+          const expirationTime = timestamp + expirationInMilliseconds;
 
           // Generate the file link for this file
           const fileLink = `${req.headers.origin}/file/${encryptedId}?expires=${expirationTime}`;
@@ -141,12 +134,8 @@ app.post("/upload", async (req, res) => {
           // Schedule a task to delete the data after the expiration time
           setTimeout(async () => {
             await File.findByIdAndRemove(savedFile._id);
-          }, expirationTime;
+          }, expirationInMilliseconds);
         }
-
-        // ...
-
-        // ...
 
         // Render the response with the array of file links
         return res.render("index", {

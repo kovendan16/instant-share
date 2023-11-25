@@ -141,7 +141,7 @@ app.post("/upload", async (req, res) => {
           // Schedule a task to delete the data after the expiration time
           setTimeout(async () => {
             await File.findByIdAndRemove(savedFile._id);
-          }, expirationInMilliseconds);
+          }, expirationTime;
         }
 
         // ...

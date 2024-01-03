@@ -237,7 +237,7 @@ app.route("/file/:id").post(async (req, res) => {
         console.error(err);
         return res
           .status(500)
-          .send({ message: "An error occurred while downloading the file." });
+          .send({ message: "An error occurred while downloading the file."+err });
       }
     });
   } catch (error) {

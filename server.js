@@ -78,47 +78,51 @@ app.get("/", (req, res) => {
   // Replace the following line with your actual encryption code
   return pathId;
 };
-*/
-app.post("/upload", async (req, res) => {
+*/app.post("/upload", async (req, res) => {
   try {
     upload(req, res, async (err) => {
       if (err) {
         if (
           err instanceof multer.MulterError &&
-          err.code == "LIMIT_FILE_SIZE"
+          err.code === "LIMIT_FILE_SIZE"
         ) {
-          return res.send("File size is maximum 2mb");
+          return res.status(400).send("File size is too large. Maximum allowed is 2MB");
         }
 
-        return res.send(err);
+        return res.status(500).send(err.message || "Internal Server Error");
       } else {
-        const files = req.files; // Access uploaded files as an array
-        const fileLinks = [];
+        // ... (rest of the existing code)
 
-        // Process each uploaded file
-        for (const file of files) {
-          const fileData = new File({
-            path: encryptId(file.path),
-            originalName: encryptId(file.originalname),
-          });
+        // Calculate expiration time
+        const customExpiration = parseInt(req.body.expiration);
 
-          if (req.body.password != null && req.body.password !== "") {
-            fileData.password = await bcrypt.hash(req.body.password, 10);
-          }
+        if (isNaN(customExpiration)) {
+          return res.status(400).send("Invalid expiration value");
+        }
 
-          const savedFile = await fileData.save();
-          const encryptedId = encryptId(savedFile.id);
+        const expirationUnit = req.body.expirationUnit || "minutes";
+        const validUnits = ["minutes", "hours", "days"];
 
-          // Calculate the expiration time based on user input
-          const customExpiration = parseInt(req.body.expiration);
-          const expirationUnit = req.body.expirationUnit || "minutes";
-          const expirationInMilliseconds =
-            customExpiration *
-            (expirationUnit === "hours"
-              ? 60 * 60 * 1000
-              : expirationUnit === "days"
-              ? 24 * 60 * 60 * 1000
-              : 60 * 1000);
+        if (!validUnits.includes(expirationUnit)) {
+          return res.status(400).send("Invalid expiration unit");
+        }
+
+        const expirationInMilliseconds =
+          customExpiration *
+          (expirationUnit === "hours"
+            ? 60 * 60 * 1000
+            : expirationUnit === "days"
+            ? 24 * 60 * 60 * 1000
+            : 60 * 1000);
+
+        // ... (rest of the existing code)
+      }
+    });
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(500).send("Internal Server Error");
+  }
+});
 
           const timestamp = Date.now();
 

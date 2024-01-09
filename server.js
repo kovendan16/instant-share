@@ -78,20 +78,16 @@ app.get("/", (req, res) => {
   // Replace the following line with your actual encryption code
   return pathId;
 };
-*/
-app.post("/upload", async (req, res) => {
+*/app.post("/upload", async (req, res) => {
   try {
     upload(req, res, async (err) => {
       if (err) {
-        if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-          return res.status(400).send("File size is too large. Maximum allowed is 2MB");
-        }
+        // handle upload errors
         return res.status(500).send(err.message || "Internal Server Error");
       }
 
-      // ... (rest of the existing code)
-
       // Calculate expiration time
+      const timestamp = Date.now();
       const customExpiration = parseInt(req.body.expiration);
 
       if (isNaN(customExpiration)) {
@@ -113,13 +109,34 @@ app.post("/upload", async (req, res) => {
           ? 24 * 60 * 60 * 1000
           : 60 * 1000);
 
-      // ... (rest of the existing code)
+      // Rest of your code...
+
+      // Calculate the actual expiration time
+      const expirationTime = timestamp + expirationInMilliseconds;
+
+      // Generate the file link for this file
+      const fileLink = `${req.headers.origin}/file/${encryptedId}?expires=${expirationTime}`;
+
+      // Push the file link to the array
+      fileLinks.push(fileLink);
+
+      // Schedule a task to delete the data after the expiration time
+      setTimeout(async () => {
+        await File.findByIdAndRemove(savedFile._id);
+      }, expirationInMilliseconds);
+
+      // Render the response with the array of file links
+      return res.render("index", {
+        fileLinks: fileLinks,
+      });
     });
   } catch (error) {
+    // Handle any unexpected errors here
     console.error("Error:", error);
     return res.status(500).send("Internal Server Error");
   }
 });
+
 
           const timestamp = Date.now();
 
